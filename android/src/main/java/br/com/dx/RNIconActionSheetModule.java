@@ -44,7 +44,7 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void showActionSheetWithOptions(final ReadableMap props, final Callback callback) {
 
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getCurrentActivity(), R.style.RNIconActionSheet_DialogStyle);
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getCurrentActivity(), R.style.RNIconActionSheet_DialogStyle);
 
         LinearLayout sheetView = (LinearLayout) getCurrentActivity().getLayoutInflater().inflate(R.layout.rn_iconactionsheet_list, null);
         bottomSheetDialog.setContentView(sheetView);
@@ -58,15 +58,24 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
 
         ReadableArray options = props.getArray("options");
 
-        for (int index = 0; index < options.size(); index++) {
+        for ( int index = 0; index < options.size(); index++) {
 
             ReadableMap option = options.getMap(index);
             LinearLayout itemView = (LinearLayout) getCurrentActivity().getLayoutInflater().inflate(R.layout.rn_iconactionsheet_list_item, null);
 
             if (option.hasKey("title") && !option.isNull("title")) {
-                String title = option.getString("title");
+                final String title = option.getString("title");
                 TextView titleTextView = itemView.findViewById(R.id.textView);
                 titleTextView.setText(title);
+                final int in = index;
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        callback.invoke(in);
+                        bottomSheetDialog.dismiss();
+                    }
+                });
             }
 
             if (option.hasKey("type") && !option.isNull("type")) {
@@ -86,10 +95,13 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
                         itemImageView.setImageDrawable(drawable);
                     }
                 }
+
             }
 
             sheetView.addView(itemView);
         }
+
+
 
         bottomSheetDialog.show();
     }
