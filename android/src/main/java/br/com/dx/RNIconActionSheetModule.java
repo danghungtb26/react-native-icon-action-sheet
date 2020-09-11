@@ -85,7 +85,7 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
                 int type = option.getInt("type");
                 if (type == 2) {
                     ReadableMap itemIcon = option.getMap("icon");
-                    if (itemIcon != null && itemIcon.hasKey("uri")) {
+                    if (itemIcon != null) {
                         String item = itemIcon.getString("uri");
                         if(item != null) {
                             ImageView itemImageView = itemView.findViewById(R.id.imageView);
