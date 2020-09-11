@@ -10,10 +10,13 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.StrictMode;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -33,6 +36,8 @@ import java.net.URL;
 public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
+
+    private static final String ANDROID_RESOURCE_SCHEME = "android.resource";
 
     public RNIconActionSheetModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -89,8 +94,24 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
                         String item = itemIcon.getString("uri");
                         if(item != null) {
                             ImageView itemImageView = itemView.findViewById(R.id.imageView);
-                            Bitmap drawable = this.getBitmapImage(item);
-                            itemImageView.setImageBitmap(drawable);
+
+
+
+                            if(startsWithValidScheme(item)) {
+                                Bitmap drawable = this.getBitmapImage(item);
+                                itemImageView.setImageBitmap(drawable);
+                            } else {
+                                try {
+                                    Drawable drawable = this.generateImage(item);
+                                    itemImageView.setImageDrawable(drawable);
+                                }
+                                catch (Exception e) {
+
+                                }
+                            }
+
+
+
                         }
 
                     }
@@ -116,6 +137,7 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
     private Bitmap getBitmapImage(String url) {
         Bitmap mIcon_val = null;
         try {
+
             URL newurl = new URL(url);
             mIcon_val = BitmapFactory.decodeStream(newurl.openConnection().getInputStream());
         }
@@ -128,18 +150,35 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
 
     }
 
+    private boolean startsWithValidScheme(String uriString) {
+        return uriString.startsWith("http://")
+                || uriString.startsWith("https://")
+                || uriString.startsWith("content://")
+                || uriString.startsWith("file://")
+                || uriString.startsWith("asset://");
+    }
 
-    @TargetApi(21)
     private Drawable generateImage(String name) {
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+//        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+//        StrictMode.setThreadPolicy(policy);
+
 
 		Resources resources = getReactApplicationContext().getResources();
-		name = name.substring(0, name.lastIndexOf("."));
 
-		final int resourceId = resources.getIdentifier(name, "drawable", getReactApplicationContext().getPackageName());
+		int resourceId = resources.getIdentifier(name, "drawable", getReactApplicationContext().getPackageName());
+
+		if(resourceId == 0) {
+            resourceId = resources.getIdentifier(name, "res", getReactApplicationContext().getPackageName());
+
+        }
+
+
+		if(resourceId > 0)
+
 		return getReactApplicationContext().getDrawable(resourceId);
+
+        return null;
     }
 
     @TargetApi(21)
