@@ -3,6 +3,7 @@ package br.com.dx;
 
 import android.annotation.TargetApi;
 import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,7 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.StrictMode;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.support.design.widget.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -26,6 +27,8 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 
 import com.facebook.react.views.text.ReactFontManager;
+
+import java.net.URL;
 
 public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
 
@@ -81,11 +84,15 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
             if (option.hasKey("type") && !option.isNull("type")) {
                 int type = option.getInt("type");
                 if (type == 2) {
-                    String itemIcon = option.getString("icon");
-                    if (itemIcon != null) {
-                        ImageView itemImageView = itemView.findViewById(R.id.imageView);
-                        Drawable drawable = this.generateImage(itemIcon);
-                        itemImageView.setImageDrawable(drawable);
+                    ReadableMap itemIcon = option.getMap("icon");
+                    if (itemIcon != null && itemIcon.hasKey("uri")) {
+                        String item = itemIcon.getString("uri");
+                        if(item != null) {
+                            ImageView itemImageView = itemView.findViewById(R.id.imageView);
+                            Bitmap drawable = this.getBitmapImage(item);
+                            itemImageView.setImageBitmap(drawable);
+                        }
+
                     }
                 } else if (type == 3) {
                     ReadableMap itemIcon = option.getMap("icon");
@@ -105,6 +112,22 @@ public class RNIconActionSheetModule extends ReactContextBaseJavaModule {
 
         bottomSheetDialog.show();
     }
+
+    private Bitmap getBitmapImage(String url) {
+        Bitmap mIcon_val = null;
+        try {
+            URL newurl = new URL(url);
+            mIcon_val = BitmapFactory.decodeStream(newurl.openConnection().getInputStream());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            return mIcon_val;
+        }
+
+    }
+
 
     @TargetApi(21)
     private Drawable generateImage(String name) {
